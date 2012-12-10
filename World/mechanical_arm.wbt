@@ -1653,7 +1653,7 @@ Robot {
                           maxForce 20
                           controlP 20
                           position 0.709137
-                          maxPosition 1.22171
+                          maxPosition 1000
                         }
                       ]
                       name "rotationalwrist"
@@ -1864,7 +1864,7 @@ Robot {
               maxForce 20
               controlP 20
               position 0.0385867
-              maxPosition 4.2149
+              maxPosition 1000
             }
           ]
           name "upperarm"
