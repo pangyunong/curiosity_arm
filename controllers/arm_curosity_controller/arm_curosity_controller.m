@@ -38,14 +38,14 @@ while wb_robot_step(TIME_STEP) ~= -1
   %s(t)
   
 
-  wb_servo_set_position(servos(1,2),inf);
-  wb_servo_set_velocity(servos(1,2),-1);
+  wb_servo_set_position(servos(1,1),inf);
+  wb_servo_set_velocity(servos(1,1),0.4);
 
-
+  
+  
   
   % if your code plots some graphics, it needs to flushed like this:
   drawnow;
-
 end
 
 % cleanup code goes here: write data to files, etc.

@@ -16,8 +16,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.409119 -0.851125 -0.32895 4.82743
-  position 4.8271 4.21371 0.730858
+  orientation 0.0299405 -0.90113 -0.432514 3.30912
+  position -0.314457 3.51245 -3.09073
 }
 Background {
   skyColor [
@@ -1952,7 +1952,7 @@ Robot {
       maxVelocity 2.20894
       maxForce 20
       controlP 20
-      maxPosition 6.0335
+      maxPosition 1000
     }
   ]
   name "IPR1"
