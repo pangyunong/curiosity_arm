@@ -16,8 +16,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.0364308 0.998156 -0.0485464 2.20034
-  position 1.55676 0.849628 -1.05343
+  orientation 0.0487445 -0.995315 -0.0834988 4.43542
+  position 3.66522 1.10284 -1.59585
 }
 Background {
   skyColor [
@@ -47,8 +47,7 @@ DEF FLOOR Solid {
   locked TRUE
 }
 DEF TARGET Solid {
-  translation -0.276407 0.658998 -0.34193
-  rotation 0.636175 0.636175 0.436536 2.31839
+  translation -0.298698 0.9 0.081665
   children [
     DEF CUBE Shape {
       appearance Appearance {
@@ -74,7 +73,7 @@ DEF TARGET Solid {
   }
 }
 Solid {
-  translation -0.0644078 0.658998 -0.283953
+  translation 0.221996 0.9 0.003103
   rotation 0.636175 0.636175 0.436536 2.31839
   children [
     DEF CUBE Shape {
@@ -101,7 +100,8 @@ Solid {
   }
 }
 Robot {
-  translation 0 0.645 0
+  translation -0.111881 0.8 -0.349543
+  rotation 0 1 0 0.173445
   children [
     DEF PEDESTAL Group {
       children [
@@ -185,56 +185,6 @@ Robot {
           geometry Box {
             size 0.155 0.012 0.155
           }
-        }
-      ]
-    }
-    DEF TABLE Group {
-      children [
-        Transform {
-          translation -0.1 -0.027 -0.2
-          children [
-            Shape {
-              appearance DEF WOOD Appearance {
-                material Material {
-                  diffuseColor 0.839216 0.619608 0.0588235
-                  shininess 0.03
-                  specularColor 0.862745 0.764706 0.513726
-                }
-              }
-              geometry Box {
-                size 1.2 0.03 0.6
-              }
-            }
-          ]
-        }
-        Transform {
-          translation 0.4 -0.342 -0.03
-          children [
-            DEF FEET Shape {
-              appearance USE WOOD
-              geometry Box {
-                size 0.05 0.6 0.05
-              }
-            }
-          ]
-        }
-        Transform {
-          translation -0.5 -0.342 -0.03
-          children [
-            USE FEET
-          ]
-        }
-        Transform {
-          translation 0.4 -0.342 -0.4
-          children [
-            USE FEET
-          ]
-        }
-        Transform {
-          translation -0.5 -0.342 -0.4
-          children [
-            USE FEET
-          ]
         }
       ]
     }
@@ -1942,7 +1892,7 @@ Robot {
           maxVelocity 1.1908
           maxForce 20
           controlP 20
-          position -14.442
+          position -14.682
           minPosition -2.44342
         }
       ]
@@ -2001,8 +1951,10 @@ Robot {
       maxVelocity 2.20894
       maxForce 20
       controlP 20
-      position 0.84121
       maxPosition 6.0335
+    }
+    Desk {
+      translation 0 -0.74 0.2
     }
   ]
   name "IPR1"
@@ -2079,48 +2031,7 @@ Robot {
           }
         ]
       }
-      DEF BOUNDING_FEET_1 Transform {
-        translation 0.4 -0.342 -0.03
-        children [
-          DEF BOUNDING_FEET Shape {
-            geometry Box {
-              size 0.05 0.6 0.05
-            }
-          }
-        ]
-      }
-      DEF BOUNDING_FEET_2 Transform {
-        translation -0.5 -0.342 -0.03
-        children [
-          USE BOUNDING_FEET
-        ]
-      }
-      DEF BOUNDING_FEET_3 Transform {
-        translation 0.4 -0.342 -0.4
-        children [
-          USE BOUNDING_FEET
-        ]
-      }
-      DEF BOUNDING_FEET_4 Transform {
-        translation -0.5 -0.342 -0.4
-        children [
-          USE BOUNDING_FEET
-        ]
-      }
-      DEF BOUNDING_TABLE Transform {
-        translation -0.1 -0.027 -0.2
-        children [
-          Shape {
-            geometry Box {
-              size 1.2 0.03 0.6
-            }
-          }
-        ]
-      }
     ]
-  }
-  physics Physics {
-    centerOfMass -0.0857272 -0.090123 -0.1955
   }
   controller "arm_curosity_controller"
 }
