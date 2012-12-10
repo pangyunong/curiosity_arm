@@ -16,8 +16,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.0487445 -0.995315 -0.0834988 4.43542
-  position 3.66522 1.10284 -1.59585
+  orientation 0.409119 -0.851125 -0.32895 4.82743
+  position 4.8271 4.21371 0.730858
 }
 Background {
   skyColor [
@@ -47,7 +47,8 @@ DEF FLOOR Solid {
   locked TRUE
 }
 DEF TARGET Solid {
-  translation -0.298698 0.9 0.081665
+  translation -0.298698 0.735857 0.081665
+  rotation 0.881158 0.468449 -0.0641618 0
   children [
     DEF CUBE Shape {
       appearance Appearance {
@@ -72,9 +73,9 @@ DEF TARGET Solid {
     mass 0.008
   }
 }
-Solid {
-  translation 0.221996 0.9 0.003103
-  rotation 0.636175 0.636175 0.436536 2.31839
+DEF TARGET2 Solid {
+  translation 0.161442 0.735857 -0.276176
+  rotation 0.636174 0.636174 0.436539 2.31839
   children [
     DEF CUBE Shape {
       appearance Appearance {
@@ -100,7 +101,7 @@ Solid {
   }
 }
 Robot {
-  translation -0.111881 0.8 -0.349543
+  translation -0.111881 0.73 -0.349543
   rotation 0 1 0 0.173445
   children [
     DEF PEDESTAL Group {
@@ -1468,7 +1469,7 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position -0.000245422
+                          position -0.000245416
                           minPosition -1.22171
                         }
                         DistanceSensor {
@@ -1828,7 +1829,7 @@ Robot {
                   maxVelocity 2.20894
                   maxForce 20
                   controlP 20
-                  position -0.0404939
+                  position -0.0404947
                   minPosition -4.0491
                 }
               ]
@@ -1862,7 +1863,7 @@ Robot {
               maxVelocity 1.38927
               maxForce 20
               controlP 20
-              position 0.0385874
+              position 0.0385867
               maxPosition 4.2149
             }
           ]
@@ -1892,7 +1893,7 @@ Robot {
           maxVelocity 1.1908
           maxForce 20
           controlP 20
-          position -14.682
+          position -33.0693
           minPosition -2.44342
         }
       ]
@@ -1952,9 +1953,6 @@ Robot {
       maxForce 20
       controlP 20
       maxPosition 6.0335
-    }
-    Desk {
-      translation 0 -0.74 0.2
     }
   ]
   name "IPR1"
@@ -2034,4 +2032,7 @@ Robot {
     ]
   }
   controller "arm_curosity_controller"
+}
+Desk {
+  translation 0.115202 -2.66454e-15 -0.146584
 }
