@@ -10,7 +10,11 @@
 %desktop;
 %keyboard;
 
-TIME_STEP = 32;
+
+%Initialization Process
+TIME_STEP = 128;
+SENSORY_SIZE = 7;
+MOTOR_SIZE = 7;
 
 % get and enable devices, e.g.:
 base = wb_robot_get_device('base');
@@ -26,7 +30,7 @@ for i=1:length(servos)
   wb_servo_enable_position(servos(1,i), TIME_STEP);
 end
 
-disp('Initializing');
+motors = zeros(1, MOTOR_SIZE);
 
 % main loop:
 % perform simulation steps of TIME_STEP milliseconds
@@ -37,10 +41,31 @@ while wb_robot_step(TIME_STEP) ~= -1
   %Obtain sensory input here 
   %s(t)
   
+  %****** CAUTION!************
+  % No joint sensor in the robot
+  % simulate the joint sensor by the webot function
+  %******* END ***************
+  base_angle =  wb_servo_get_position(servos(1,1));
+  upperarm_angle = wb_servo_get_position(servos(1,2));
+  forearm_angle = wb_servo_get_position(servos(1,3));
+  wrist_angle = wb_servo_get_position(servos(1,4));
+  rotationalwrist_angle = wb_servo_get_position(servos(1,5));
+  rightgripper_angle = wb_servo_get_position(servos(1,6));
+  leftgripper_angle = wb_servo_get_position(servos(1,7));
 
-  wb_servo_set_position(servos(1,1),inf);
-  wb_servo_set_velocity(servos(1,1),0.4);
-
+  % regulate the angle into range [0,2*pi]
+  angles =  [base_angle, upperarm_angle, forearm_angle,...
+             wrist_angle, rotationalwrist_angle,...
+              rightgripper_angle, leftgripper_angle];
+  regulated_angles = mod(angles, 2*pi);
+  
+  %motion selection from the current input sensory state
+  motors = motion_selection(regulated_angles,SENSORY_SIZE ,MOTOR_SIZE)
+  
+  for i=1:MOTOR_SIZE
+    wb_servo_set_position(servos(1,i),inf);
+    wb_servo_set_velocity(servos(1,i),motors(i));
+  end
   
   
   
