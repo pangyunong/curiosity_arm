@@ -32,12 +32,26 @@ end
 
 motors = zeros(1, MOTOR_SIZE);
 
+%create Predictor
+pred = Predictor;
+pred.id = 1;
+pred.weights = rand(1+SENSORY_SIZE+MOTOR_SIZE, SENSORY_SIZE)-0.5;
+
+predicted_sensories = [];
+
+%FOR visualization
+plotsteps = 2500;
+prediction_errors = zeros(plotsteps,SENSORY_SIZE);
+
+%a counter to record the step
+stepnum = 0;
+
 % main loop:
 % perform simulation steps of TIME_STEP milliseconds
 % and leave the loop when Webots signals the termination
 %
 while wb_robot_step(TIME_STEP) ~= -1
-  
+  stepnum = stepnum + 1;
   %Obtain sensory input here 
   %s(t)
   
@@ -59,17 +73,33 @@ while wb_robot_step(TIME_STEP) ~= -1
               rightgripper_angle, leftgripper_angle];
   regulated_angles = mod(angles, 2*pi);
   
+  % when the real future state comes, get the prediction error
+  if (length(predicted_sensories) ~= 0)
+     error = regulated_angles - predicted_sensories;
+     pred.updateWeights(error);
+     prediction_errors(stepnum, :) = error;
+  end
+  %************** Motor Selection **********************
   %motion selection from the current input sensory state
-  motors = motion_selection(regulated_angles,SENSORY_SIZE ,MOTOR_SIZE)
+  motors = motion_selection(regulated_angles,SENSORY_SIZE ,MOTOR_SIZE);
   
   for i=1:MOTOR_SIZE
     wb_servo_set_position(servos(1,i),inf);
     wb_servo_set_velocity(servos(1,i),motors(i));
   end
   
-  
+
+  % prediction from current sensory state and motor state
+  predicted_sensories = pred.prediction(regulated_angles, motors);
+  latest_inputs = [1, regulated_angles, motors];
+  pred.latest_inputs = latest_inputs;
   
   % if your code plots some graphics, it needs to flushed like this:
+  if (stepnum == plotsteps)
+     plot(prediction_errors);
+     print('-dpng', 'prediction_errors');
+  end
+  stepnum
   drawnow;
 end
 
