@@ -1,9 +1,9 @@
-classdef Predictor
-  properties
+classdef Predictor < handle
+  properties (GetAccess=public)
     id
     weights
     latest_inputs
-    alpha=0.05       %learning rate
+    alpha=0.000005       %learning rate
     iternum = 15   
   end
 
@@ -17,7 +17,8 @@ classdef Predictor
     end
 
 
-    function updateWeights(obj, errors)
+    function obj = updateWeights(obj, errors)
+      
       len = length(errors);
       for j = 1:obj.iternum
         for i = 1:len
@@ -29,6 +30,7 @@ classdef Predictor
 
 
     end
+
   end
 
 end

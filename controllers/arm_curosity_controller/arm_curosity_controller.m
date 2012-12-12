@@ -44,9 +44,15 @@ pred.weights = rand(1+SENSORY_SIZE+MOTOR_SIZE, SENSORY_SIZE)-0.5;
 
 predicted_sensories = [];
 
+%Create the actors, init them
+actor = Actor;
+actor.id = 1;
+
 %FOR visualization
-plotsteps = 1500;
+plotsteps = 16000;
 prediction_errors = zeros(plotsteps,SENSORY_SIZE);
+
+plotweights = zeros(3, plotsteps);
 
 %a counter to record the step
 stepnum = 0;
@@ -82,14 +88,15 @@ while wb_robot_step(TIME_STEP) ~= -1
   regulated_angles = mod(angles, 2*pi);
   
   % when the real future state comes, get the prediction error
-  if (length(predicted_sensories) ~= 0)
+  if (length(predicted_sensories) ~= 0 && stepnum <= plotsteps)
      error = regulated_angles - predicted_sensories;
+     plotweights(:,stepnum) = pred.weights(2:4,2);
      pred.updateWeights(error);
-     prediction_errors(stepnum, :) = error;
+     prediction_errors(stepnum, :) = error.^2;
   end
   %************** Motor Selection **********************
   %motion selection from the current input sensory state
-  motors = motion_selection(regulated_angles,SENSORY_SIZE ,MOTOR_SIZE);
+  motors = actor.motion_selection(regulated_angles,SENSORY_SIZE ,MOTOR_SIZE);
   
 
 
@@ -98,7 +105,7 @@ while wb_robot_step(TIME_STEP) ~= -1
     wb_servo_set_velocity(servos(1,i),motors(i));
   end
   
-
+  
   % prediction from current sensory state and motor state
   predicted_sensories = pred.prediction(regulated_angles, motors);
   latest_inputs = [1, regulated_angles, motors];
@@ -106,21 +113,30 @@ while wb_robot_step(TIME_STEP) ~= -1
   
   % if your code plots some graphics, it needs to flushed like this:
   if (stepnum == plotsteps)
-    smooth_param = 10;
-    disp(prediction_errors);
+    smooth_param = 20;
     plotlen = uint16(stepnum/smooth_param); 
     plotarray = zeros(plotlen, SENSORY_SIZE);
     for i=1:plotlen
       plotarray(i,:) = mean(prediction_errors((i-1)*10+1:i*10,:), 1);
     end
-
-    plot(plotarray);
+    
+    plotarray = sum(plotarray, 2);
+    figure(1);
+    plot((0:plotlen-1)*smooth_param, plotarray);
+    xlabel('Step');
+    ylabel('Prediction Error');
     print('-dpng', 'prediction_errors');
+
+    %plot the weight change over time
+    save plotweights;
 
   end
   stepnum
-  figure(1);
-  imshow(image);
+  %*********For show image of the camera*****
+  %  figure(1);
+  % imshow(image);
+
+  %******** For edge detection **************
   %  edge_img = edge_detection(image);
   %  figure(2);
   % imshow(edge_img);
