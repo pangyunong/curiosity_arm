@@ -16,8 +16,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.0299405 -0.90113 -0.432514 3.30912
-  position -0.314457 3.51245 -3.09073
+  orientation 0.400063 -0.836093 -0.375364 4.64789
+  position 5.38094 7.63086 -0.240007
 }
 Background {
   skyColor [
@@ -47,8 +47,8 @@ DEF FLOOR Solid {
   locked TRUE
 }
 DEF TARGET Solid {
-  translation -0.298698 0.735857 0.081665
-  rotation 0.881158 0.468449 -0.0641618 0
+  translation -0.3533 0.735998 -0.0927897
+  rotation -0.0293697 -0.0293697 0.999137 1.57166
   children [
     DEF CUBE Shape {
       appearance Appearance {
@@ -74,8 +74,8 @@ DEF TARGET Solid {
   }
 }
 DEF TARGET2 Solid {
-  translation 0.161442 0.735857 -0.276176
-  rotation 0.636174 0.636174 0.436539 2.31839
+  translation 0.0818595 0.735998 -0.0722564
+  rotation 0.642792 0.642792 0.416696 2.35196
   children [
     DEF CUBE Shape {
       appearance Appearance {
@@ -102,8 +102,33 @@ DEF TARGET2 Solid {
 }
 Robot {
   translation -0.111881 0.73 -0.349543
-  rotation 0 1 0 0.173445
   children [
+    Camera {
+      translation 0.15 1.5 0.2
+      rotation 1 0 0 4.71239
+      children [
+        Solid {
+          rotation 1 0 0 1.5708
+          children [
+            Shape {
+              appearance Appearance {
+                material Material {
+                  diffuseColor 0.666667 0 0.498039
+                }
+              }
+              geometry Cone {
+                bottomRadius 0.05
+                height 0.1
+              }
+            }
+          ]
+        }
+      ]
+      width 256
+      height 256
+      windowPosition 0.867603 0.309927
+      gaussianNoise 4
+    }
     DEF PEDESTAL Group {
       children [
         Transform {
@@ -1469,7 +1494,7 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position -0.000245416
+                          position -5.90888
                           minPosition -1.22171
                         }
                         DistanceSensor {
@@ -1652,7 +1677,7 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position 0.709137
+                          position 3.44292
                           maxPosition 1000
                         }
                       ]
@@ -1743,7 +1768,7 @@ Robot {
                       maxVelocity 2.20894
                       maxForce 20
                       controlP 20
-                      position -0.0613592
+                      position 3.09783
                       minPosition -5.79789
                     }
                   ]
@@ -1829,7 +1854,7 @@ Robot {
                   maxVelocity 2.20894
                   maxForce 20
                   controlP 20
-                  position -0.0404947
+                  position -1.65125
                   minPosition -4.0491
                 }
               ]
@@ -1863,7 +1888,7 @@ Robot {
               maxVelocity 1.38927
               maxForce 20
               controlP 20
-              position 0.0385867
+              position 1.46232
               maxPosition 1000
             }
           ]
@@ -1893,7 +1918,7 @@ Robot {
           maxVelocity 1.1908
           maxForce 20
           controlP 20
-          position -33.0693
+          position -32.6557
           minPosition -2.44342
         }
       ]
@@ -1952,6 +1977,7 @@ Robot {
       maxVelocity 2.20894
       maxForce 20
       controlP 20
+      position 4.61212
       maxPosition 1000
     }
   ]

@@ -25,10 +25,15 @@ rotationalwrist = wb_robot_get_device('rotationalwrist');
 rightgripper = wb_robot_get_device('right_gripper');
 leftgripper =  wb_robot_get_device('left_gripper');
 
+camera =  wb_robot_get_device('camera');
+
 servos = [base, upperarm, forearm, wrist, rotationalwrist, rightgripper, leftgripper];
 for i=1:length(servos)
   wb_servo_enable_position(servos(1,i), TIME_STEP);
 end
+
+wb_camera_enable(camera,TIME_STEP);
+
 
 motors = zeros(1, MOTOR_SIZE);
 
@@ -40,7 +45,7 @@ pred.weights = rand(1+SENSORY_SIZE+MOTOR_SIZE, SENSORY_SIZE)-0.5;
 predicted_sensories = [];
 
 %FOR visualization
-plotsteps = 2500;
+plotsteps = 1500;
 prediction_errors = zeros(plotsteps,SENSORY_SIZE);
 
 %a counter to record the step
@@ -83,6 +88,8 @@ while wb_robot_step(TIME_STEP) ~= -1
   %motion selection from the current input sensory state
   motors = motion_selection(regulated_angles,SENSORY_SIZE ,MOTOR_SIZE);
   
+
+
   for i=1:MOTOR_SIZE
     wb_servo_set_position(servos(1,i),inf);
     wb_servo_set_velocity(servos(1,i),motors(i));
@@ -96,8 +103,17 @@ while wb_robot_step(TIME_STEP) ~= -1
   
   % if your code plots some graphics, it needs to flushed like this:
   if (stepnum == plotsteps)
-     plot(prediction_errors);
-     print('-dpng', 'prediction_errors');
+    smooth_param = 10;
+    disp(prediction_errors);
+    plotlen = uint16(stepnum/smooth_param); 
+    plotarray = zeros(plotlen, SENSORY_SIZE);
+    for i=1:plotlen
+      plotarray(i,:) = mean(prediction_errors((i-1)*10+1:i*10,:), 1);
+    end
+
+    plot(plotarray);
+    print('-dpng', 'prediction_errors');
+
   end
   stepnum
   drawnow;

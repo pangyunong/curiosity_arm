@@ -4,8 +4,7 @@ classdef Predictor
     weights
     latest_inputs
     alpha=0.05       %learning rate
-    iternum = 10
-   
+    iternum = 15   
   end
 
 
