@@ -72,6 +72,9 @@ while wb_robot_step(TIME_STEP) ~= -1
   rightgripper_angle = wb_servo_get_position(servos(1,6));
   leftgripper_angle = wb_servo_get_position(servos(1,7));
 
+  image = wb_camera_get_image(camera);
+  
+
   % regulate the angle into range [0,2*pi]
   angles =  [base_angle, upperarm_angle, forearm_angle,...
              wrist_angle, rotationalwrist_angle,...
@@ -116,6 +119,11 @@ while wb_robot_step(TIME_STEP) ~= -1
 
   end
   stepnum
+  figure(1);
+  imshow(image);
+  %  edge_img = edge_detection(image);
+  %  figure(2);
+  % imshow(edge_img);
   drawnow;
 end
 
