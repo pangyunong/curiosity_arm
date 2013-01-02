@@ -37,10 +37,9 @@ wb_camera_enable(camera,TIME_STEP);
 
 motors = zeros(1, MOTOR_SIZE);
 
-%create Predictor
-pred = Predictor;
-pred.id = 1;
-pred.weights = rand(1+SENSORY_SIZE+MOTOR_SIZE, SENSORY_SIZE)-0.5;
+%create and initialize Predictor
+pred = Predictor(SENSORY_SIZE, MOTOR_SIZE, SENSORY_SIZE, 1);
+
 
 predicted_sensories = [];
 
@@ -49,10 +48,10 @@ actor = Actor;
 actor.id = 1;
 
 %FOR visualization
-plotsteps = 16000;
+plotsteps = 1000;
 prediction_errors = zeros(plotsteps,SENSORY_SIZE);
 
-plotweights = zeros(3, plotsteps);
+plotweights = zeros(60, plotsteps);
 
 %a counter to record the step
 stepnum = 0;
@@ -61,6 +60,15 @@ stepnum = 0;
 % perform simulation steps of TIME_STEP milliseconds
 % and leave the loop when Webots signals the termination
 %
+
+% Matlab-related function
+% to create the good-looking window
+figure;
+set(gcf,'outerposition',get(0,'screensize'));
+% create progress bar to monitor
+pbar = waitbar(0,'Simulating>>>');
+
+
 while wb_robot_step(TIME_STEP) ~= -1
   stepnum = stepnum + 1;
   %Obtain sensory input here 
@@ -90,7 +98,11 @@ while wb_robot_step(TIME_STEP) ~= -1
   % when the real future state comes, get the prediction error
   if (length(predicted_sensories) ~= 0 && stepnum <= plotsteps)
      error = regulated_angles - predicted_sensories;
-     plotweights(:,stepnum) = pred.weights(2:4,2);
+     plotweights(1:15,stepnum) = pred.weights(:,2);
+     plotweights(16:30,stepnum) = pred.weights(:,3);
+     plotweights(31:45,stepnum) = pred.weights(:,4);
+     plotweights(46:60,stepnum) = pred.weights(:,5);
+
      pred.updateWeights(error);
      prediction_errors(stepnum, :) = error.^2;
   end
@@ -113,6 +125,7 @@ while wb_robot_step(TIME_STEP) ~= -1
   
   % if your code plots some graphics, it needs to flushed like this:
   if (stepnum == plotsteps)
+    close(pbar);
     smooth_param = 20;
     plotlen = uint16(stepnum/smooth_param); 
     plotarray = zeros(plotlen, SENSORY_SIZE);
@@ -121,17 +134,26 @@ while wb_robot_step(TIME_STEP) ~= -1
     end
     
     plotarray = sum(plotarray, 2);
-    figure(1);
+    subplot(2,1,1);
     plot((0:plotlen-1)*smooth_param, plotarray);
     xlabel('Step');
     ylabel('Prediction Error');
-    print('-dpng', 'prediction_errors');
 
     %plot the weight change over time
-    save plotweights;
+    subplot(2,1,2);
+    plot(1:plotsteps, plotweights);
+    xlabel('Step');
+    ylabel('Weight');
+    
 
+
+  
   end
-  stepnum
+  
+  if (stepnum < plotsteps)
+    % The progress bar to monitor the status
+    waitbar(stepnum/plotsteps, pbar, 'running');
+  end
   %*********For show image of the camera*****
   %  figure(1);
   % imshow(image);

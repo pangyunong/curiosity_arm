@@ -3,12 +3,20 @@ classdef Predictor < handle
     id
     weights
     latest_inputs
-    alpha=0.000005       %learning rate
+    alpha=0.0001       %learning rate
     iternum = 15   
   end
 
 
   methods
+  %constructor
+  function obj = Predictor(sensory_size, motor_size, output_sensory_size, range)
+     inputsize = sensory_size +  motor_size + 1;
+     outputsize = output_sensory_size;
+     obj.weights = rand(inputsize, outputsize)*range-0.5;
+  end
+
+
     function pred_sensors=prediction(obj, sensors, motors)
       % add the bias
       sensors = [1, sensors];
