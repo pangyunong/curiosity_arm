@@ -16,6 +16,7 @@ TIME_STEP = 128;
 SENSORY_SIZE = 7;
 MOTOR_SIZE = 7;
 
+
 % get and enable devices, e.g.:
 base = wb_robot_get_device('base');
 upperarm = wb_robot_get_device('upperarm');
@@ -38,18 +39,48 @@ wb_camera_enable(camera,TIME_STEP);
 motors = zeros(1, MOTOR_SIZE);
 
 %create and initialize Predictor
-pred = Predictor(SENSORY_SIZE, MOTOR_SIZE, SENSORY_SIZE, 1);
+%pred = Predictor(SENSORY_SIZE, MOTOR_SIZE, SENSORY_SIZE, 1, 255, 255);
 
+% choosing the random 2 motors
+rng shuffle;
+randmotormask1 = ceil(rand*7);
+randmotormask2 = ceil(rand*7);
+
+
+randsensormask1 = ceil(rand*7);
+randsensormask2 = ceil(rand*7);
+
+while randmotormask2 == randmotormask1
+  randmotormask2 = ceil(rand*7);
+end
+
+while randsensormask2 == randsensormask1
+  randsensormask2 = ceil(rand*7);
+end
+
+fullmask = dec2bin(0,8);
+fullmask(randmotormask1) = '1';
+fullmask(randmotormask2) = '1';
+motormask = bin2dec(fullmask);
+
+fullmask = dec2bin(0,8);
+fullmask(randsensormask1) = '1';
+fullmask(randsensormask2) = '1';
+sensormask = bin2dec(fullmask);
+
+
+pred = Predictor( 2 , 2 , 2, 1, sensormask, motormask);
 
 predicted_sensories = [];
 
 %Create the actors, init them
-actor = Actor;
+actor = Actor(SENSORY_SIZE, MOTOR_SIZE, 0.6, motormask);
+motormask
 actor.id = 1;
 
 %FOR visualization
 plotsteps = 1000;
-prediction_errors = zeros(plotsteps,SENSORY_SIZE);
+prediction_errors = zeros(plotsteps,2);
 
 plotweights = zeros(60, plotsteps);
 
@@ -64,7 +95,7 @@ stepnum = 0;
 % Matlab-related function
 % to create the good-looking window
 figure;
-set(gcf,'outerposition',get(0,'screensize'));
+%set(gcf,'outerposition',get(0,'screensize'));
 % create progress bar to monitor
 pbar = waitbar(0,'Simulating>>>');
 
@@ -97,24 +128,27 @@ while wb_robot_step(TIME_STEP) ~= -1
   
   % when the real future state comes, get the prediction error
   if (length(predicted_sensories) ~= 0 && stepnum <= plotsteps)
-     error = regulated_angles - predicted_sensories;
-     plotweights(1:15,stepnum) = pred.weights(:,2);
-     plotweights(16:30,stepnum) = pred.weights(:,3);
-     plotweights(31:45,stepnum) = pred.weights(:,4);
-     plotweights(46:60,stepnum) = pred.weights(:,5);
-
+     error =  pred.getError(regulated_angles, predicted_sensories);
      pred.updateWeights(error);
      prediction_errors(stepnum, :) = error.^2;
   end
   %************** Motor Selection **********************
   %motion selection from the current input sensory state
   motors = actor.motion_selection(regulated_angles,SENSORY_SIZE ,MOTOR_SIZE);
+  motors
+
+  % Execute the motor commands
+  motormask = dec2bin(actor.mask, 8);
   
-
-
   for i=1:MOTOR_SIZE
-    wb_servo_set_position(servos(1,i),inf);
-    wb_servo_set_velocity(servos(1,i),motors(i));
+    if motormask(i) == '1'
+      wb_servo_set_position(servos(1,i),inf);
+      wb_servo_set_velocity(servos(1,i),motors(i));
+    else
+      wb_servo_set_position(servos(1,i),inf);
+      wb_servo_set_velocity(servos(1,i),0);
+
+    end
   end
   
   
@@ -128,7 +162,7 @@ while wb_robot_step(TIME_STEP) ~= -1
     close(pbar);
     smooth_param = 20;
     plotlen = uint16(stepnum/smooth_param); 
-    plotarray = zeros(plotlen, SENSORY_SIZE);
+    plotarray = zeros(plotlen, 2);
     for i=1:plotlen
       plotarray(i,:) = mean(prediction_errors((i-1)*10+1:i*10,:), 1);
     end
@@ -140,10 +174,10 @@ while wb_robot_step(TIME_STEP) ~= -1
     ylabel('Prediction Error');
 
     %plot the weight change over time
-    subplot(2,1,2);
-    plot(1:plotsteps, plotweights);
-    xlabel('Step');
-    ylabel('Weight');
+    %% subplot(2,1,2);
+    %% plot(1:plotsteps, plotweights);
+    %% xlabel('Step');
+    %% ylabel('Weight');
     
 
 
@@ -152,7 +186,8 @@ while wb_robot_step(TIME_STEP) ~= -1
   
   if (stepnum < plotsteps)
     % The progress bar to monitor the status
-    waitbar(stepnum/plotsteps, pbar, 'running');
+    showstr = ['running',num2str(stepnum),'/',num2str(plotsteps)];
+    waitbar(stepnum/plotsteps, pbar, showstr);
   end
   %*********For show image of the camera*****
   %  figure(1);
