@@ -41,34 +41,6 @@ motors = zeros(1, MOTOR_SIZE);
 %create and initialize Predictor
 %pred = Predictor(SENSORY_SIZE, MOTOR_SIZE, SENSORY_SIZE, 1, 255, 255);
 
-% choosing the random 2 motors
-rng shuffle;
-randmotormask1 = ceil(rand*7);
-randmotormask2 = ceil(rand*7);
-
-
-randsensormask1 = ceil(rand*7);
-randsensormask2 = ceil(rand*7);
-
-while randmotormask2 == randmotormask1
-  randmotormask2 = ceil(rand*7);
-end
-
-while randsensormask2 == randsensormask1
-  randsensormask2 = ceil(rand*7);
-end
-
-fullmask = dec2bin(0,8);
-fullmask(randmotormask1) = '1';
-fullmask(randmotormask2) = '1';
-motormask = bin2dec(fullmask);
-
-fullmask = dec2bin(0,8);
-fullmask(randsensormask1) = '1';
-fullmask(randsensormask2) = '1';
-sensormask = bin2dec(fullmask);
-
-
 pred = Predictor( 2 , 2 , 2, 1, sensormask, motormask);
 
 predicted_sensories = [];
@@ -134,15 +106,6 @@ while wb_robot_step(TIME_STEP) ~= -1
   end
   %************** Motor Selection **********************
   %motion selection from the current input sensory state
-
-  if mod(stepnum, 50) == 49
-     % produce a sensory target
-     maxlen = pred.getLenofHistSensory;
-     rng shuffle;
-     randindex = ceil(rand*maxlen);
-     target_sensory = pred.gethistorySensory(randindex);
-  end  
-
   motors = actor.motion_selection(regulated_angles,SENSORY_SIZE ,MOTOR_SIZE);
   motors
 
@@ -156,6 +119,7 @@ while wb_robot_step(TIME_STEP) ~= -1
     else
       wb_servo_set_position(servos(1,i),inf);
       wb_servo_set_velocity(servos(1,i),0);
+
     end
   end
   
@@ -164,7 +128,6 @@ while wb_robot_step(TIME_STEP) ~= -1
   predicted_sensories = pred.prediction(regulated_angles, motors);
   latest_inputs = [1, regulated_angles, motors];
   pred.latest_inputs = latest_inputs;
-  pred.addhistorySensory(regulated_angles);
   
   % if your code plots some graphics, it needs to flushed like this:
   if (stepnum == plotsteps)
@@ -198,8 +161,6 @@ while wb_robot_step(TIME_STEP) ~= -1
     showstr = ['running',num2str(stepnum),'/',num2str(plotsteps)];
     waitbar(stepnum/plotsteps, pbar, showstr);
   end
-
-
   %*********For show image of the camera*****
   %  figure(1);
   % imshow(image);
