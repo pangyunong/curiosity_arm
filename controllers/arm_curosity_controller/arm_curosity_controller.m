@@ -1,6 +1,6 @@
 % MATLAB controller for Webots
 % File:      arm_curiosity_controller.m
-% Date:          
+% Date:          Everyday
 % Description:   A matlab controller to operate the arm
 % Author:        Pang Yunong
 
@@ -10,14 +10,27 @@
 %desktop;
 %keyboard;
 
-
-%Initialization Process
+%% ****************************************
+% Constant Definition
+%% ****************************************
 TIME_STEP = 128;
-SENSORY_SIZE = 7;
-MOTOR_SIZE = 7;
+MAX_MOTOR_NUM = 7;
+MAX_SENSOR_NUM = 7;
+JOINT_RANGE = [-3.14, 3.14; -2.3562, 2.3562; -2, 2; -2,2; -2.5, 2.5; 0, 1.2771; -1.2771, 0];
+SERVO_SPEED_RANGE = [2.20894; 1.1908; 1.38927; 2.20894; 2.20894; 2.20894; 2.20894];
+
+%% ****************************************
+%% Variable Definition
+%% ****************************************
+sensory_buffer = Buffer;
+effect_buffer  = Buffer;
+target_effect_buffer = Buffer;
 
 
-% get and enable devices, e.g.:
+
+% *********************************************
+% get the reference and enable devices, e.g.:
+%% ********************************************
 base = wb_robot_get_device('base');
 upperarm = wb_robot_get_device('upperarm');
 forearm = wb_robot_get_device('forearm');
@@ -29,86 +42,41 @@ leftgripper =  wb_robot_get_device('left_gripper');
 camera =  wb_robot_get_device('camera');
 
 servos = [base, upperarm, forearm, wrist, rotationalwrist, rightgripper, leftgripper];
+
+% Enable the devices
 for i=1:length(servos)
   wb_servo_enable_position(servos(1,i), TIME_STEP);
 end
-
 wb_camera_enable(camera,TIME_STEP);
 
 
-motors = zeros(1, MOTOR_SIZE);
-
-%create and initialize Predictor
-%pred = Predictor(SENSORY_SIZE, MOTOR_SIZE, SENSORY_SIZE, 1, 255, 255);
-
-% choosing the random 2 motors
-rng shuffle;
-randmotormask1 = ceil(rand*7);
-randmotormask2 = ceil(rand*7);
+%% ****************************************
+%% Initialize the Device
+%% ****************************************
 
 
-randsensormask1 = ceil(rand*7);
-randsensormask2 = ceil(rand*7);
-
-while randmotormask2 == randmotormask1
-  randmotormask2 = ceil(rand*7);
-end
-
-while randsensormask2 == randsensormask1
-  randsensormask2 = ceil(rand*7);
-end
-
-fullmask = dec2bin(0,8);
-fullmask(randmotormask1) = '1';
-fullmask(randmotormask2) = '1';
-motormask = bin2dec(fullmask);
-
-fullmask = dec2bin(0,8);
-fullmask(randsensormask1) = '1';
-fullmask(randsensormask2) = '1';
-sensormask = bin2dec(fullmask);
 
 
-pred = Predictor( 2 , 2 , 2, 1, sensormask, motormask);
 
-predicted_sensories = [];
 
-%Create the actors, init them
-actor = Actor(SENSORY_SIZE, MOTOR_SIZE, 0.6, motormask);
-motormask
-actor.id = 1;
 
-%FOR visualization
-plotsteps = 1000;
-prediction_errors = zeros(plotsteps,2);
 
-plotweights = zeros(60, plotsteps);
 
-%a counter to record the step
-stepnum = 0;
+
+
 
 % main loop:
 % perform simulation steps of TIME_STEP milliseconds
 % and leave the loop when Webots signals the termination
 %
 
-% Matlab-related function
-% to create the good-looking window
-figure;
-%set(gcf,'outerposition',get(0,'screensize'));
-% create progress bar to monitor
-pbar = waitbar(0,'Simulating>>>');
-
 
 while wb_robot_step(TIME_STEP) ~= -1
-  stepnum = stepnum + 1;
-  %Obtain sensory input here 
-  %s(t)
-  
-  %****** CAUTION!************
-  % No joint sensor in the robot
-  % simulate the joint sensor by the webot function
-  %******* END ***************
+
+  %% ***************************************
+  %  Obtain sensory input here 
+  %  S(t)
+  %% ***************************************
   base_angle =  wb_servo_get_position(servos(1,1));
   upperarm_angle = wb_servo_get_position(servos(1,2));
   forearm_angle = wb_servo_get_position(servos(1,3));
@@ -117,97 +85,84 @@ while wb_robot_step(TIME_STEP) ~= -1
   rightgripper_angle = wb_servo_get_position(servos(1,6));
   leftgripper_angle = wb_servo_get_position(servos(1,7));
 
-  image = wb_camera_get_image(camera);
+  %% Simple Image processing
+  image = wb_camera_get_image(camera); 
+  gimg = image(:,:,2) - image(:,:,1) - image(:,:,3);
+  bwimg = im2bw(gimg, 0.05);
+  labels = bwlabel(bwimg, 8);
+  
+  blobMeasurements = regionprops(labels, 'all');
+  top_x = blobMeasurements(1).Centroid(1);
+  top_y = blobMeasurements(1).Centroid(2);
+  %% location of hand 
+  hand_loc = [top_x, top_y]
   
 
-  % regulate the angle into range [0,2*pi]
-  angles =  [base_angle, upperarm_angle, forearm_angle,...
-             wrist_angle, rotationalwrist_angle,...
-              rightgripper_angle, leftgripper_angle];
-  regulated_angles = mod(angles, 2*pi);
+  %% ****************************************
+  %% Data normalization & regularation 
+  %% ****************************************
+  angles =  [base_angle;  upperarm_angle; forearm_angle;...
+             wrist_angle; rotationalwrist_angle;...
+              rightgripper_angle; leftgripper_angle];
+
+  %normalize the angle by the range
+  norm_angles = (angles - JOINT_RANGE(:,1) ) ./ (JOINT_RANGE(:,2) - JOINT_RANGE(:,1));
+    
   
-  % when the real future state comes, get the prediction error
-  if (length(predicted_sensories) ~= 0 && stepnum <= plotsteps)
-     error =  pred.getError(regulated_angles, predicted_sensories);
-     pred.updateWeights(error);
-     prediction_errors(stepnum, :) = error.^2;
-  end
-  %************** Motor Selection **********************
-  %motion selection from the current input sensory state
-
-  if mod(stepnum, 50) == 49
-     % produce a sensory target
-     maxlen = pred.getLenofHistSensory;
-     rng shuffle;
-     randindex = ceil(rand*maxlen);
-     target_sensory = pred.gethistorySensory(randindex);
-  end  
-
-  motors = actor.motion_selection(regulated_angles,SENSORY_SIZE ,MOTOR_SIZE);
-  motors
-
-  % Execute the motor commands
-  motormask = dec2bin(actor.mask, 8);
+  %% ****************************************
+  %% Sending to Buffer (1 period delay)
+  %% ****************************************
+  sensory_buffer.send2Buffer(norm_angles);
+  effect_buffer.send2Buffer(hand_loc);
   
-  for i=1:MOTOR_SIZE
-    if motormask(i) == '1'
-      wb_servo_set_position(servos(1,i),inf);
-      wb_servo_set_velocity(servos(1,i),motors(i));
+
+
+
+  %% ****************************************
+  %% Sending to the Actor
+  %% ****************************************
+
+
+
+  %% ****************************************
+  %  MOTOR EXECUTION
+  %%   (Information about motor)
+  %%   Restrict the servo movement range here
+  %%  ------------------------------
+  %%   Servo_1 base: [-pi, pi]
+  %%   Servo_2 upperarm: [-2.3562, 2.3562]
+  %%   Servo_3 forearm: [-2, 2]
+  %%   Servo_4 wrist: [-2, 2]
+  %%   Servo_5 rotational wrist:[-2.5,2.5] 
+  %%   Servo_6 right gripper: [0, 1.2771]
+  %%   Servo_7 left gripper: [-1.2771, 0]
+  %%  
+  %%   MAX velocity of each servo
+  %%  ------------------------------
+  %%   Servo_1 base: 2.20894
+  %%   Servo_2 upperarm: 1.1908
+  %%   Servo_3 forearm: 1.38927
+  %%   Servo_4 wrist: 2.20894
+  %%   Servo_5 ratational wrist: 2.20894
+  %%   Servo_6 right gripper: 2.20894
+  %%   Servo_7 left gripper: 2.20894
+  %% ****************************************
+  norm_motor_command_array = [0.2; -0.2; 0.2; 0.2; 0.2; 0.1; -0.1];
+  %% Denormalize the motor command into the real servo speed
+  motor_command_array = norm_motor_command_array.*SERVO_SPEED_RANGE;
+
+  for motor_index = 1:MAX_MOTOR_NUM
+    if (motor_command_array(motor_index) >= 0)
+      wb_servo_set_position(servos(1,motor_index),JOINT_RANGE(motor_index, 2));
     else
-      wb_servo_set_position(servos(1,i),inf);
-      wb_servo_set_velocity(servos(1,i),0);
+      wb_servo_set_position(servos(1,motor_index),JOINT_RANGE(motor_index, 1));
     end
-  end
-  
-  
-  % prediction from current sensory state and motor state
-  predicted_sensories = pred.prediction(regulated_angles, motors);
-  latest_inputs = [1, regulated_angles, motors];
-  pred.latest_inputs = latest_inputs;
-  pred.addhistorySensory(regulated_angles);
-  
-  % if your code plots some graphics, it needs to flushed like this:
-  if (stepnum == plotsteps)
-    close(pbar);
-    smooth_param = 20;
-    plotlen = uint16(stepnum/smooth_param); 
-    plotarray = zeros(plotlen, 2);
-    for i=1:plotlen
-      plotarray(i,:) = mean(prediction_errors((i-1)*10+1:i*10,:), 1);
-    end
-    
-    plotarray = sum(plotarray, 2);
-    subplot(2,1,1);
-    plot((0:plotlen-1)*smooth_param, plotarray);
-    xlabel('Step');
-    ylabel('Prediction Error');
-
-    %plot the weight change over time
-    %% subplot(2,1,2);
-    %% plot(1:plotsteps, plotweights);
-    %% xlabel('Step');
-    %% ylabel('Weight');
-    
-
-
-  
-  end
-  
-  if (stepnum < plotsteps)
-    % The progress bar to monitor the status
-    showstr = ['running',num2str(stepnum),'/',num2str(plotsteps)];
-    waitbar(stepnum/plotsteps, pbar, showstr);
+      wb_servo_set_velocity(servos(1,motor_index),abs(motor_command_array(motor_index)));
   end
 
 
-  %*********For show image of the camera*****
-  %  figure(1);
-  % imshow(image);
 
-  %******** For edge detection **************
-  %  edge_img = edge_detection(image);
-  %  figure(2);
-  % imshow(edge_img);
+  %% MATLAB Graphics control statement
   drawnow;
 end
 

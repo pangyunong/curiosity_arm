@@ -16,8 +16,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.400063 -0.836093 -0.375364 4.64789
-  position 5.38094 7.63086 -0.240007
+  orientation 0.880134 -0.417559 -0.225854 5.26963
+  position 0.111302 1.93094 -0.0472903
 }
 Background {
   skyColor [
@@ -47,8 +47,8 @@ DEF FLOOR Solid {
   locked TRUE
 }
 DEF TARGET Solid {
-  translation -0.3533 0.735998 -0.0927897
-  rotation -0.0293697 -0.0293697 0.999137 1.57166
+  translation -0.238817 0.735998 -0.0807066
+  rotation 0.417141 0.417141 0.807457 1.78305
   children [
     DEF CUBE Shape {
       appearance Appearance {
@@ -126,8 +126,8 @@ Robot {
       ]
       width 256
       height 256
-      windowPosition 0.867603 0.309927
-      gaussianNoise 4
+      windowPosition 0.704388 0.682382
+      colorNoise 0.0156863
     }
     DEF PEDESTAL Group {
       children [
@@ -215,8 +215,8 @@ Robot {
       ]
     }
     DEF ROBOT Servo {
-      translation 0 0.2035 0
-      rotation 0 1 0 0.128855
+      translation 6.40939e-09 0.203386 -2.94427e-09
+      rotation -5e-06 1 4e-06 0
       children [
         Transform {
           translation 0 -0.0627 0.0275
@@ -465,7 +465,8 @@ Robot {
           ]
         }
         Servo {
-          rotation 0 0 1 0.575555
+          translation -1.43799e-09 -0.000101243 7.49879e-10
+          rotation 0 0 1 0.5236
           children [
             Transform {
               translation 0 0.095 0
@@ -547,8 +548,8 @@ Robot {
               ]
             }
             Servo {
-              translation 0 0.19 0
-              rotation 0 0 1 -2.21125
+              translation 4.73888e-05 0.189982 -6.86538e-09
+              rotation 0 0 1 0
               children [
                 DEF OVIFORM_METAL Group {
                   children [
@@ -884,8 +885,8 @@ Robot {
                   ]
                 }
                 Servo {
-                  translation 0 0.139 0
-                  rotation 0 0 1 2.02541
+                  translation 7.17388e-07 0.138993 -6.61514e-09
+                  rotation 0.002885 -0.008128 0.999963 0
                   children [
                     USE OVIFORM_METAL
                     Transform {
@@ -916,9 +917,105 @@ Robot {
                       ]
                     }
                     DEF WRIST Servo {
-                      translation 0 0.1185 0
-                      rotation 0 1 0 2.99437
+                      translation 1.24893e-05 0.118493 -7.05164e-09
+                      rotation 0 1 7e-06 0
                       children [
+                        LED {
+                          translation 0.027 0.035 0
+                          children [
+                            PointLight {
+                              ambientIntensity 0.05
+                              color 0 0 0
+                              intensity 0.05
+                              location 0 0.3 0
+                              radius 130
+                            }
+                            Shape {
+                              appearance Appearance {
+                                material Material {
+                                  ambientIntensity 0.5
+                                  emissiveColor 0 1 0
+                                  shininess 0.4
+                                }
+                              }
+                              geometry Sphere {
+                                radius 0.009
+                              }
+                            }
+                          ]
+                        }
+                        LED {
+                          translation -0.041 0.035 0
+                          children [
+                            PointLight {
+                              ambientIntensity 0.05
+                              color 0 0 0
+                              intensity 0.05
+                              location 0 0.3 0
+                              radius 130
+                            }
+                            Shape {
+                              appearance Appearance {
+                                material Material {
+                                  ambientIntensity 0.5
+                                  emissiveColor 0 1 0
+                                  shininess 0.4
+                                }
+                              }
+                              geometry Sphere {
+                                radius 0.009
+                              }
+                            }
+                          ]
+                        }
+                        LED {
+                          translation 0 0.035 -0.027
+                          children [
+                            PointLight {
+                              ambientIntensity 0.05
+                              color 0 0 0
+                              intensity 0.05
+                              location 0 0.3 0
+                              radius 130
+                            }
+                            Shape {
+                              appearance Appearance {
+                                material Material {
+                                  ambientIntensity 0.5
+                                  emissiveColor 0 1 0
+                                  shininess 0.4
+                                }
+                              }
+                              geometry Sphere {
+                                radius 0.009
+                              }
+                            }
+                          ]
+                        }
+                        LED {
+                          translation 0 0.035 0.027
+                          children [
+                            PointLight {
+                              ambientIntensity 0.05
+                              color 0 0 0
+                              intensity 0.05
+                              location 0 0.3 0
+                              radius 130
+                            }
+                            Shape {
+                              appearance Appearance {
+                                material Material {
+                                  ambientIntensity 0.5
+                                  emissiveColor 0 1 0
+                                  shininess 0.4
+                                }
+                              }
+                              geometry Sphere {
+                                radius 0.009
+                              }
+                            }
+                          ]
+                        }
                         Transform {
                           translation 0 0.0009 0
                           children [
@@ -1309,7 +1406,7 @@ Robot {
                           ]
                         }
                         Servo {
-                          translation 0 0.0983 0
+                          translation 2.72793e-07 0.0982667 7.67655e-06
                           rotation 1 0 0 0
                           children [
                             Transform {
@@ -1494,7 +1591,7 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position -5.90888
+                          position -1.22171
                           minPosition -1.22171
                         }
                         DistanceSensor {
@@ -1509,7 +1606,7 @@ Robot {
                           ]
                         }
                         Servo {
-                          translation 0 0.0983 0
+                          translation 4.61839e-07 0.0982988 -1.05226e-11
                           rotation 1 0 0 0
                           children [
                             Transform {
@@ -1677,8 +1774,9 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position 3.44292
-                          maxPosition 1000
+                          position 1.22171
+                          minPosition -0.1
+                          maxPosition 1.22171
                         }
                       ]
                       name "rotationalwrist"
@@ -1768,7 +1866,7 @@ Robot {
                       maxVelocity 2.20894
                       maxForce 20
                       controlP 20
-                      position 3.09783
+                      position 0
                       minPosition -5.79789
                     }
                   ]
@@ -1854,7 +1952,7 @@ Robot {
                   maxVelocity 2.20894
                   maxForce 20
                   controlP 20
-                  position -1.65125
+                  position 0
                   minPosition -4.0491
                 }
               ]
@@ -1888,8 +1986,8 @@ Robot {
               maxVelocity 1.38927
               maxForce 20
               controlP 20
-              position 1.46232
-              maxPosition 1000
+              position 0
+              maxPosition 4.2149
             }
           ]
           name "upperarm"
@@ -1918,8 +2016,7 @@ Robot {
           maxVelocity 1.1908
           maxForce 20
           controlP 20
-          position -32.6557
-          minPosition -2.44342
+          position -0.3
         }
       ]
       name "base"
@@ -1977,8 +2074,9 @@ Robot {
       maxVelocity 2.20894
       maxForce 20
       controlP 20
-      position 4.61212
-      maxPosition 1000
+      position 0
+      minPosition -6.0335
+      maxPosition 6.0335
     }
   ]
   name "IPR1"
