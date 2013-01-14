@@ -1,34 +1,49 @@
-%% Actor is a policy producer
-%% it maps the specified sensory state to the action
-%% action = Actor(Sensory) 
-
-
-
 classdef Actor < handle
-
   properties 
-    id
-    ssize
-    msize
-    weights
-    mask
+    sensory_t
+    effect_t
+    
+    target_effect_t
   end
+
+
+
+
 
   methods
-    function obj = Actor(sensory_size, motor_size, range, mask)
-       obj.ssize = sensory_size;
-       obj.msize = motor_size;
-       rng shuffle;
-       obj.weights = rand(sensory_size+1, motor_size)*range-0.5*range;
-       obj.mask = mask;
+  %% ****************************************
+  %% CONSTRUCTOR
+  %%  Do the init job
+  %% ****************************************
+    function obj = Actor()
+      obj.sensory_t = [];
+      obj.effect_t = [];
+      obj.target_effect_t = [];
     end
-    function motors = motion_selection(obj, sensors, ssize, msize)
-      obj.ssize = ssize;
-      obj.msize = msize;
-	  RANDOM_RANGE = 1.1;
-    
-      sensors = [1, sensors];
-      motors = sensors*obj.weights;
+
+
+  %% ****************************************
+  %% TWO setter, to update s(t), y(t)
+  %% ****************************************
+    function update_sensory(obj, new_sensory)
+      obj.sensory_t = new_sensory;
+    end
+
+    function update_effect(obj, new_effect)
+       obj.effect_t = new_effect;
+    end
+
+    %% ****************************************
+    %% According to current
+    %%   s(t), y(t), status(t)
+    %%   choosing OR approximating
+    %%      Next y_next(t)
+    %%   (it will be sent to the inverse model
+    %%     predicitor)
+    %% ****************************************
+    function next_effect = get_next_effect(obj)
+        next_effect = obj.effect_t * 0.3;
     end
   end
+
 end

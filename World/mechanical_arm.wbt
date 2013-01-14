@@ -16,8 +16,8 @@ WorldInfo {
   ]
 }
 Viewpoint {
-  orientation 0.880134 -0.417559 -0.225854 5.26963
-  position 0.111302 1.93094 -0.0472903
+  orientation 0.880133 -0.417559 -0.225854 5.26963
+  position 0.580621 3.35549 0.947894
 }
 Background {
   skyColor [
@@ -104,7 +104,7 @@ Robot {
   translation -0.111881 0.73 -0.349543
   children [
     Camera {
-      translation 0.15 1.5 0.2
+      translation 0.06 1.6 0.05
       rotation 1 0 0 4.71239
       children [
         Solid {
@@ -1866,7 +1866,6 @@ Robot {
                       maxVelocity 2.20894
                       maxForce 20
                       controlP 20
-                      position 0
                       minPosition -5.79789
                     }
                   ]
@@ -1952,7 +1951,6 @@ Robot {
                   maxVelocity 2.20894
                   maxForce 20
                   controlP 20
-                  position 0
                   minPosition -4.0491
                 }
               ]
@@ -1986,7 +1984,6 @@ Robot {
               maxVelocity 1.38927
               maxForce 20
               controlP 20
-              position 0
               maxPosition 4.2149
             }
           ]
@@ -2074,7 +2071,6 @@ Robot {
       maxVelocity 2.20894
       maxForce 20
       controlP 20
-      position 0
       minPosition -6.0335
       maxPosition 6.0335
     }
@@ -2158,5 +2154,5 @@ Robot {
   controller "arm_curosity_controller"
 }
 Desk {
-  translation 0.115202 -2.66454e-15 -0.146584
+  translation 0.0078758 -1.33227e-15 -0.308648
 }

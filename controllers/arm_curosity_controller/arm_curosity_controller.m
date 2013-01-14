@@ -24,9 +24,10 @@ SERVO_SPEED_RANGE = [2.20894; 1.1908; 1.38927; 2.20894; 2.20894; 2.20894; 2.2089
 %% ****************************************
 sensory_buffer = Buffer;
 effect_buffer  = Buffer;
-target_effect_buffer = Buffer;
+target_action_buffer = Buffer;
 
-
+actor = Actor;
+predictor = Predictor(7, 2, 2, 2);
 
 % *********************************************
 % get the reference and enable devices, e.g.:
@@ -95,7 +96,8 @@ while wb_robot_step(TIME_STEP) ~= -1
   top_x = blobMeasurements(1).Centroid(1);
   top_y = blobMeasurements(1).Centroid(2);
   %% location of hand 
-  hand_loc = [top_x, top_y]
+  hand_loc = [top_x, top_y];
+  norm_hand_loc = hand_loc/256;
   
 
   %% ****************************************
@@ -111,9 +113,12 @@ while wb_robot_step(TIME_STEP) ~= -1
   
   %% ****************************************
   %% Sending to Buffer (1 period delay)
+  %%   (it will update the buffer to be 
+  %%     latest!)
   %% ****************************************
   sensory_buffer.send2Buffer(norm_angles);
-  effect_buffer.send2Buffer(hand_loc);
+  effect_buffer.send2Buffer(norm_hand_loc);
+  
   
 
 
@@ -121,6 +126,30 @@ while wb_robot_step(TIME_STEP) ~= -1
   %% ****************************************
   %% Sending to the Actor
   %% ****************************************
+  actor.update_sensory(norm_angles);
+  actor.update_effect(norm_hand_loc);
+
+  target_effect = actor.get_next_effect();
+  
+
+  %% ****************************************
+  %% Use the Inverse Model in Predictor
+  %%   to predict the action command
+  %% ****************************************
+  action_command = predictor.inverse_predict(target_effect, norm_angles);  
+  
+  %%  sending the action command to buffer
+  target_action_buffer.send2Buffer(action_command);
+
+
+  %% ****************************************
+  %% All data for training is ready
+  %%  training here
+  %% ****************************************
+  predictor.train(sensory_buffer, effect_buffer, target_action_buffer, norm_angles, norm_hand_loc);  % training
+
+
+
 
 
 
@@ -147,7 +176,7 @@ while wb_robot_step(TIME_STEP) ~= -1
   %%   Servo_6 right gripper: 2.20894
   %%   Servo_7 left gripper: 2.20894
   %% ****************************************
-  norm_motor_command_array = [0.2; -0.2; 0.2; 0.2; 0.2; 0.1; -0.1];
+  norm_motor_command_array = action_command;
   %% Denormalize the motor command into the real servo speed
   motor_command_array = norm_motor_command_array.*SERVO_SPEED_RANGE;
 
