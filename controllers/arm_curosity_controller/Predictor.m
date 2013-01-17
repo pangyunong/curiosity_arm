@@ -1,12 +1,46 @@
 classdef Predictor < handle
   properties
+    ALPHA_FM                    % learning rate
+    ALPHA_IM                    % im learning rate
+    ITERNUM                     % iteration number
+
     fm_weights
+    im_weights
+
+    encode_weights
+    decode_weights
+
+    im_pred_errors
+    im_pred_i
+    fm_pred_errors              
+    fm_pred_i
+
+    ssize                       % Sensory size (e.g. no. of joint angles)
+    esize                       % Effect size (e.g. The predicting parameters)
+    msize                       % Motor command size (e.g. motor of the joints)
   end
 
 
   methods
-    function obj = Predictor(ssize, esize, impredsize, fmpredsize);
-        obj.fm_weights = rand(1+ssize+esize, fmpredsize);
+    function obj = Predictor(ssize, esize, msize);
+        %% attributes
+        obj.ssize = ssize;      % sensor size
+        obj.esize = esize;      % effect size
+        obj.msize = msize;      % motor size
+        %% weights
+        obj.fm_weights = rand(esize, 1+ssize );
+        obj.im_weights = rand(ssize, 1+esize );
+        %% weights of decoder and encoder
+        obj.encode_weights = rand(1+ssize, msize);
+        obj.decode_weights = rand(1+mszie, ssize);
+        
+        
+        obj.im_pred_errors = zeros(1000,1);
+        obj.im_pred_i = 1;
+        obj.fm_pred_errors = zeros(1000,1);
+        obj.fm_pred_i = 1;
+        
+        
     end
 
     %% ****************************************
@@ -14,19 +48,32 @@ classdef Predictor < handle
     %%   
     %% ****************************************
 
-    function action = inverse_predict(obj, effect, sensor)
-      action =  (rand(7,1) - 0.5)*2;
+    function action = inverse_predict(obj, target_effect, st, yt)
+      target_delta_effect = target_effect - yt;
+      target_delta_sensor = obj.im_weights * [1;target_delta_effect];
+      
+      action = obj.decode(target_delta_sensor);
+      
+    end
+
+    function action = decode(obj, delta_s)
+      action = obj.decode_weights * [1; delta_s];
     end
 
     %% ****************************************
     %% Predict using the forward model
     %%   
     %% ****************************************
-    function effect = forward_predict(obj, effect, sensor, action)
-      inputs = [1; sensor; effect];
-      effect = inputs'*fm_weights;
+    function next_effect = forward_predict(obj, yt, st, action)
+       delta_s = obj.encode(action);
+       delta_y = obj.fm_weights * [1; delta_s];
+       
+       next_effect = yt + delta_y;
     end
 
+    function deltas = encode(obj, action)
+      deltas = obj.encode_weights * [1;action];
+    end
 
 
     %% ****************************************
@@ -64,11 +111,20 @@ classdef Predictor < handle
     %%  Training the Inverse Model
     %% ****************************************
     function train_im(obj, st_1, yt_1, at_1, st, yt)
-      st_1
-      yt_1
-      at_1
-      st
-      yt
+      delta_y = yt - yt_1;
+      delta_s = st - st_1;
+      
+      action = obj.inverse_predict(yt, st_1, yt_1);
+      error = sum((action - at_1) .^2);
+      obj.im_pred_errors(im_pred_i) = error;
+      
+    %% training start
+      for i = 1:ITERNUM
+          for 
+      end
+      
+      
+
     end
 
 

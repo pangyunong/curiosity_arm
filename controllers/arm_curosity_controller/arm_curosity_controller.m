@@ -136,7 +136,7 @@ while wb_robot_step(TIME_STEP) ~= -1
   %% Use the Inverse Model in Predictor
   %%   to predict the action command
   %% ****************************************
-  action_command = predictor.inverse_predict(target_effect, norm_angles);  
+  action_command = predictor.inverse_predict(target_effect, norm_angles, norm_hand_loc);  
   
   %%  sending the action command to buffer
   target_action_buffer.send2Buffer(action_command);

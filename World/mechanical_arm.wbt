@@ -17,7 +17,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation 0.880133 -0.417559 -0.225854 5.26963
-  position 0.580621 3.35549 0.947894
+  position 0.934135 3.39994 0.717562
 }
 Background {
   skyColor [
@@ -1591,7 +1591,7 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position -1.22171
+                          position -0.0348599
                           minPosition -1.22171
                         }
                         DistanceSensor {
@@ -1774,7 +1774,7 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position 1.22171
+                          position 0.976365
                           minPosition -0.1
                           maxPosition 1.22171
                         }
@@ -1866,6 +1866,7 @@ Robot {
                       maxVelocity 2.20894
                       maxForce 20
                       controlP 20
+                      position -0.387555
                       minPosition -5.79789
                     }
                   ]
@@ -1951,6 +1952,7 @@ Robot {
                   maxVelocity 2.20894
                   maxForce 20
                   controlP 20
+                  position -1.63923
                   minPosition -4.0491
                 }
               ]
@@ -1984,6 +1986,7 @@ Robot {
               maxVelocity 1.38927
               maxForce 20
               controlP 20
+              position 1.01351
               maxPosition 4.2149
             }
           ]
@@ -2013,7 +2016,7 @@ Robot {
           maxVelocity 1.1908
           maxForce 20
           controlP 20
-          position -0.3
+          position 0.709395
         }
       ]
       name "base"
@@ -2071,6 +2074,7 @@ Robot {
       maxVelocity 2.20894
       maxForce 20
       controlP 20
+      position -0.406121
       minPosition -6.0335
       maxPosition 6.0335
     }
