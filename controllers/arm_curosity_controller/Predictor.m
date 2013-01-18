@@ -1,7 +1,8 @@
 classdef Predictor < handle
   properties
-    ALPHA_FM                    % learning rate
+    ALPHA_DECODE                % learning rate
     ALPHA_IM                    % im learning rate
+    PLOT_LENGTH                 % plot length
     ITERNUM                     % iteration number
 
     fm_weights
@@ -18,6 +19,8 @@ classdef Predictor < handle
     ssize                       % Sensory size (e.g. no. of joint angles)
     esize                       % Effect size (e.g. The predicting parameters)
     msize                       % Motor command size (e.g. motor of the joints)
+
+    
   end
 
 
@@ -28,51 +31,62 @@ classdef Predictor < handle
         obj.esize = esize;      % effect size
         obj.msize = msize;      % motor size
         %% weights
-        obj.fm_weights = rand(esize, 1+ssize );
-        obj.im_weights = rand(ssize, 1+esize );
+        rng shuffle;
+        obj.fm_weights = (rand(1+esize, 1+ssize ) - 0.5)*2*0.3;
+        rng shuffle;
+        obj.im_weights = (rand(1+ssize, 1+esize ) - 0.5)*2*0.3;
         %% weights of decoder and encoder
-        obj.encode_weights = rand(1+ssize, msize);
-        obj.decode_weights = rand(1+mszie, ssize);
+        rng shuffle;
+        rng shuffle;
+        obj.encode_weights = (rand(1+ssize, 1+msize) - 0.5)*2*0.3;
+        obj.decode_weights = (rand(1+msize, 1+ssize) - 0.5)*2*0.3;
         
-        
-        obj.im_pred_errors = zeros(1000,1);
+        %% for monitor the error
+        obj.PLOT_LENGTH = 100;
+        obj.im_pred_errors = zeros(obj.PLOT_LENGTH,1);
         obj.im_pred_i = 1;
-        obj.fm_pred_errors = zeros(1000,1);
+        obj.fm_pred_errors = zeros(obj.PLOT_LENGTH,1);
         obj.fm_pred_i = 1;
         
-        
+        obj.ALPHA_DECODE = 0.05;
+        obj.ALPHA_IM = 0.08;
     end
 
     %% ****************************************
     %% Predict using the inverse model
-    %%   
+    %%   INPUT: The original y(t)s(t), NOT delta ONE
+    %%   OUTPUT: The action a(t)
     %% ****************************************
 
-    function action = inverse_predict(obj, target_effect, st, yt)
+    function [action, delta_sensor] = inverse_predict(obj, target_effect, st, yt)
       target_delta_effect = target_effect - yt;
       target_delta_sensor = obj.im_weights * [1;target_delta_effect];
-      
-      action = obj.decode(target_delta_sensor);
+      %% delete the bias item
+      delta_sensor = target_delta_sensor(2:obj.ssize+1);
+      action = obj.decode(delta_sensor);
       
     end
 
     function action = decode(obj, delta_s)
       action = obj.decode_weights * [1; delta_s];
+      action = action(2:obj.msize+1); % delete the bia item
     end
 
     %% ****************************************
     %% Predict using the forward model
-    %%   
+    %%   INPUT: The current y(t) and s(t), and a(t)
+    %%   OUTPUT: The y_next
     %% ****************************************
-    function next_effect = forward_predict(obj, yt, st, action)
+    function [next_effect, pred_delta_y] = forward_predict(obj, yt, st, action)
        delta_s = obj.encode(action);
-       delta_y = obj.fm_weights * [1; delta_s];
-       
-       next_effect = yt + delta_y;
+       delta_y = obj.fm_weights * [1;delta_s];
+       pred_delta_y = delta_y(2:obj.esize+1); % delete the bia item
+       next_effect = yt + pred_delta_y;
     end
 
     function deltas = encode(obj, action)
       deltas = obj.encode_weights * [1;action];
+      deltas = deltas(2:obj.ssize+1);
     end
 
 
@@ -100,8 +114,9 @@ classdef Predictor < handle
          st = sensory_t;
          yt = effect_t;
          
+         %%  train IM , by its way, train FM
          obj.train_im(st_1, yt_1, at_1, st, yt);
-         obj.train_fm(st_1, yt_1, at_1, st, yt);
+  
          
       end
       
@@ -109,33 +124,70 @@ classdef Predictor < handle
 
     %% ****************************************
     %%  Training the Inverse Model
+    %%    By its way, it use pseudo-inverse to 
+    %%     get the FM-related weights!
     %% ****************************************
     function train_im(obj, st_1, yt_1, at_1, st, yt)
       delta_y = yt - yt_1;
       delta_s = st - st_1;
       
-      action = obj.inverse_predict(yt, st_1, yt_1);
-      error = sum((action - at_1) .^2);
-      obj.im_pred_errors(im_pred_i) = error;
+      [action, pred_delta_s] = obj.inverse_predict(yt, st_1, yt_1);
+      [next_y, pred_delta_y] = obj.forward_predict(yt_1, st_1, at_1);
       
-    %% training start
-      for i = 1:ITERNUM
-          for 
+      delta_s_errors = pred_delta_s - delta_s;
+      %% Obtain the decode error here
+      pred_action = obj.decode(delta_s);
+      pred_action
+      at_1
+      decode_errors = pred_action - at_1;
+
+      im_error = sum((action - at_1) .^2);
+      %     im_error                  % monitor error 
+      obj.im_pred_errors(obj.im_pred_i) = im_error;
+      obj.im_pred_i = obj.im_pred_i + 1;
+
+      fm_error = sum((next_y - yt).^2);
+%      fm_error                  % monitor error
+      obj.fm_pred_errors(obj.fm_pred_i) = fm_error;
+      obj.fm_pred_i = obj.fm_pred_i + 1;
+      
+      %% Draw the diagram to show the error change
+      if obj.fm_pred_i == obj.PLOT_LENGTH
+         figure(2);
+         plot( 1:obj.PLOT_LENGTH, obj.im_pred_errors,1:obj.PLOT_LENGTH, obj.fm_pred_errors);
+         legend('IM error', 'FM error');
       end
-      
+    %% training start
+      %% linear regression (online version)
+      %%  Training IM model
+      obj.im_weights = obj.im_weights - obj.ALPHA_IM * [1;delta_s_errors] * [1;delta_y]';
+
+      %% Training Decode model
+      obj.decode_weights = obj.decode_weights - obj.ALPHA_DECODE *[1;decode_errors] * [1;delta_s]'; 
       
 
+      %% USE the pseudo-inverse to get the FM-related weights
+      obj.fm_weights = pinv(obj.im_weights);
+      obj.encode_weights = pinv(obj.decode_weights);
+      
     end
 
 
-    %% ****************************************
-    %%  Training the Forward Model
-    %%   Using the old-fashion simple 
-    %%    Linear Regression!
-    %% ****************************************
-    function train_fm(obj, st_1, yt_1, at_1, st, yt)
-
-    end
+    %% %% ****************************************
+    %% %%  Training the Forward Model (NOT USED, as the pinv())
+    %% %%   Using the old-fashion simple 
+    %% %%    Linear Regression!
+    %% %% ****************************************
+    %% function train_fm(obj, st_1, yt_1, at_1, st, yt)
+    %%   delta_y = yt - yt_1;
+    %%   delta_s = st - st_1;
+      
+    %%   [next_y, pred_delta_y] = obj.forward_predict(yt_1 , st_1, at_1);
+    %%   delta_y_errors = pred_delta_y - delta_y;
+      
+    %% %% we have the errors, now train it
+    %%   obj.
+    %% end
 
   end
 

@@ -27,7 +27,7 @@ effect_buffer  = Buffer;
 target_action_buffer = Buffer;
 
 actor = Actor;
-predictor = Predictor(7, 2, 2, 2);
+predictor = Predictor(7, 2, 7);
 
 % *********************************************
 % get the reference and enable devices, e.g.:
@@ -96,7 +96,7 @@ while wb_robot_step(TIME_STEP) ~= -1
   top_x = blobMeasurements(1).Centroid(1);
   top_y = blobMeasurements(1).Centroid(2);
   %% location of hand 
-  hand_loc = [top_x, top_y];
+  hand_loc = [top_x; top_y];
   norm_hand_loc = hand_loc/256;
   
 
@@ -128,15 +128,24 @@ while wb_robot_step(TIME_STEP) ~= -1
   %% ****************************************
   actor.update_sensory(norm_angles);
   actor.update_effect(norm_hand_loc);
+  figure(1);
+  axis([0,1,0,1]);
+  axis manual;
+  set(gca,'YDir','reverse');
+  hold on;
 
-  target_effect = actor.get_next_effect();
+  plot(norm_hand_loc(1),norm_hand_loc(2), '.r');
   
+  target_effect = actor.get_next_effect();
+
+  plot(target_effect(1), target_effect(2), '.b');
+  legend('Y', 'target Y');
 
   %% ****************************************
   %% Use the Inverse Model in Predictor
   %%   to predict the action command
   %% ****************************************
-  action_command = predictor.inverse_predict(target_effect, norm_angles, norm_hand_loc);  
+  action_command = predictor.inverse_predict(target_effect, norm_angles, norm_hand_loc)
   
   %%  sending the action command to buffer
   target_action_buffer.send2Buffer(action_command);

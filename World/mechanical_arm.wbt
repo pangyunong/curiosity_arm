@@ -1591,7 +1591,7 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position -0.0348599
+                          position 0
                           minPosition -1.22171
                         }
                         DistanceSensor {
@@ -1774,7 +1774,7 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position 0.976365
+                          position 0
                           minPosition -0.1
                           maxPosition 1.22171
                         }
@@ -1866,7 +1866,7 @@ Robot {
                       maxVelocity 2.20894
                       maxForce 20
                       controlP 20
-                      position -0.387555
+                      position 0
                       minPosition -5.79789
                     }
                   ]
@@ -1952,7 +1952,7 @@ Robot {
                   maxVelocity 2.20894
                   maxForce 20
                   controlP 20
-                  position -1.63923
+                  position 0
                   minPosition -4.0491
                 }
               ]
@@ -1986,7 +1986,7 @@ Robot {
               maxVelocity 1.38927
               maxForce 20
               controlP 20
-              position 1.01351
+              position 0
               maxPosition 4.2149
             }
           ]
@@ -2016,7 +2016,7 @@ Robot {
           maxVelocity 1.1908
           maxForce 20
           controlP 20
-          position 0.709395
+          position 0
         }
       ]
       name "base"
@@ -2074,7 +2074,7 @@ Robot {
       maxVelocity 2.20894
       maxForce 20
       controlP 20
-      position -0.406121
+      position 0
       minPosition -6.0335
       maxPosition 6.0335
     }

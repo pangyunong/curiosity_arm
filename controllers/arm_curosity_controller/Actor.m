@@ -42,7 +42,7 @@ classdef Actor < handle
     %%     predicitor)
     %% ****************************************
     function next_effect = get_next_effect(obj)
-        next_effect = obj.effect_t * 0.3;
+        next_effect = rand(2,1);
     end
   end
 
