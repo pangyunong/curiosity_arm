@@ -19,15 +19,21 @@ MAX_SENSOR_NUM = 7;
 JOINT_RANGE = [-3.14, 3.14; -2.3562, 2.3562; -2, 2; -2,2; -2.5, 2.5; 0, 1.2771; -1.2771, 0];
 SERVO_SPEED_RANGE = [2.20894; 1.1908; 1.38927; 2.20894; 2.20894; 2.20894; 2.20894];
 
+RANDOM_PERIOD = 150;
+START_TO_PREDICT = 50;
+
 %% ****************************************
 %% Variable Definition
 %% ****************************************
+
+global lwprs;                   % LWPR model. learning the non-linear function
+                                %  it is shared by every actor and predictor
 sensory_buffer = Buffer;
 effect_buffer  = Buffer;
 target_action_buffer = Buffer;
 
 actor = Actor;
-predictor = Predictor(7, 2, 7);
+predictor = Predictor(7, 2, 7, 1, lwprs); % predictor here
 
 % *********************************************
 % get the reference and enable devices, e.g.:
@@ -51,16 +57,17 @@ end
 wb_camera_enable(camera,TIME_STEP);
 
 
+
+
 %% ****************************************
-%% Initialize the Device
+%% Initialize GLOBAL status of ROBOT
+%%  STATUS : 0 -> init( random move, learning)
+%%           1 -> generate targe (learning)
 %% ****************************************
+status = 0;
+robot_step = 0;
 
-
-
-
-
-
-
+figwin = figure('Visible', 'off');
 
 
 
@@ -73,6 +80,11 @@ wb_camera_enable(camera,TIME_STEP);
 
 
 while wb_robot_step(TIME_STEP) ~= -1
+
+  %% ***************************************
+  %   ROBOT status
+  %  ***************************************
+ 
 
   %% ***************************************
   %  Obtain sensory input here 
@@ -128,28 +140,49 @@ while wb_robot_step(TIME_STEP) ~= -1
   %% ****************************************
   actor.update_sensory(norm_angles);
   actor.update_effect(norm_hand_loc);
-  figure(1);
-  axis([0,1,0,1]);
-  axis manual;
-  set(gca,'YDir','reverse');
-  hold on;
 
-  plot(norm_hand_loc(1),norm_hand_loc(2), '.r');
-  
-  target_effect = actor.get_next_effect();
 
-  plot(target_effect(1), target_effect(2), '.b');
-  legend('Y', 'target Y');
+  %% Preparation -> random move 
+  if (status == 0)
+      action_command = (rand(MAX_MOTOR_NUM, 1)-0.5)*1;
+      robot_step = robot_step + 1;
+      indicate_str = ['Random exploration step no: ',num2str(robot_step)];
+      disp(indicate_str);
+      if (robot_step == RANDOM_PERIOD)
+         status = 1;
+      end
+      if (robot_step == START_TO_PREDICT)
+         predictor.status = 1;
+      end
+      target_action_buffer.send2Buffer(action_command);
+      
 
-  %% ****************************************
-  %% Use the Inverse Model in Predictor
-  %%   to predict the action command
-  %% ****************************************
-  action_command = predictor.inverse_predict(target_effect, norm_angles, norm_hand_loc)
-  
-  %%  sending the action command to buffer
-  target_action_buffer.send2Buffer(action_command);
+  %% Finish preparation, produce target
+  %%   (the place containing largest competence)
+  elseif (status == 1)
+      %% Matlab drawing operation
+      set(figwin, 'Visible', 'on');
+      axis([0,1,0,1]);
+      axis manual;
+      set(gca,'YDir','reverse');
+      hold on;
 
+      plot(norm_hand_loc(1),norm_hand_loc(2), '.r');
+
+      target_effect = actor.get_next_effect();
+
+      plot(target_effect(1), target_effect(2), '.b');
+      legend('Y', 'target Y');
+
+      %% ****************************************
+      %% Use the Inverse Model in Predictor
+      %%   to predict the action command
+      %% ****************************************
+      action_command = predictor.inverse_predict(target_effect, norm_angles, norm_hand_loc);
+
+      %%  sending the action command to buffer
+      target_action_buffer.send2Buffer(action_command);
+  end
 
   %% ****************************************
   %% All data for training is ready

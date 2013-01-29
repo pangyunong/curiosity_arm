@@ -4,6 +4,7 @@ classdef Actor < handle
     effect_t
     
     target_effect_t
+    global_status
   end
 
 
@@ -19,6 +20,7 @@ classdef Actor < handle
       obj.sensory_t = [];
       obj.effect_t = [];
       obj.target_effect_t = [];
+      obj.global_status = 0;
     end
 
 
@@ -42,7 +44,13 @@ classdef Actor < handle
     %%     predicitor)
     %% ****************************************
     function next_effect = get_next_effect(obj)
-        next_effect = rand(2,1);
+        next_effect = [0.2;0.6];
+    end
+
+
+    function set_status(obj, stat)
+      obj.global_status = stat;
+      
     end
   end
 
