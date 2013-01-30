@@ -47,7 +47,7 @@ classdef Predictor < handle
         obj.decode_weights = rand();
         
         %% for monitor the error
-        obj.PLOT_LENGTH = 90;
+        obj.PLOT_LENGTH = 8500;
         obj.im_pred_errors = zeros(obj.PLOT_LENGTH,1);
         obj.im_pred_i = 1;
         obj.fm_pred_errors = zeros(obj.PLOT_LENGTH,1);
@@ -67,7 +67,7 @@ classdef Predictor < handle
         kernel = 'Gaussian';
 
         lwpr('Change',ID*2-1,'init_D',eye(obj.ssize)*25); 
-        lwpr('Change',ID*2-1,'init_alpha',ones(obj.ssize)*250);     % this is a safe learning rate
+        lwpr('Change',ID*2-1,'init_alpha',ones(obj.ssize)*450);     % this is a safe learning rate
         lwpr('Change',ID*2-1,'w_gen',0.2);                  % more overlap gives smoother surfaces
         lwpr('Change',ID*2-1,'meta',1);                     % meta learning can be faster, but numerical more dangerous
         lwpr('Change',ID*2-1,'meta_rate',250);
@@ -78,7 +78,7 @@ classdef Predictor < handle
         kernel = 'Gaussian';
 
         lwpr('Change',ID*2,'init_D',eye(obj.ssize+obj.esize)*25); 
-        lwpr('Change',ID*2,'init_alpha',ones(obj.ssize+obj.esize)*250);     % this is a safe learning rate
+        lwpr('Change',ID*2,'init_alpha',ones(obj.ssize+obj.esize)*20);     % this is a safe learning rate
         lwpr('Change',ID*2,'w_gen',0.2);                  % more overlap gives smoother surfaces
         lwpr('Change',ID*2,'meta',1);                     % meta learning can be faster, but numerical more dangerous
         lwpr('Change',ID*2,'meta_rate',250);
@@ -167,8 +167,10 @@ classdef Predictor < handle
          %% Draw the diagram to show the error change
          if obj.fm_pred_i == obj.PLOT_LENGTH
            h = figure(2);
-           plot( 1:obj.PLOT_LENGTH, obj.im_pred_errors,1:obj.PLOT_LENGTH, obj.fm_pred_errors);
-           legend('IM error', 'FM error');
+           subplot(2,1,1);
+           plot (1:obj.PLOT_LENGTH, obj.fm_pred_errors);
+           subplot(2,1,2);
+           plot( 1:obj.PLOT_LENGTH, obj.im_pred_errors);
            saveas(h,'prediction_error.fig');
          end
          
@@ -193,7 +195,7 @@ classdef Predictor < handle
           pred_action = obj.decode(delta_s);
 
 
-          im_error = sum((action - at_1) .^2)/56;
+          im_error = sum((action - at_1) .^2)/7;
           %     im_error                  % monitor error 
           obj.im_pred_errors(obj.im_pred_i) = im_error;
           obj.im_pred_i = obj.im_pred_i + 1;
@@ -206,7 +208,9 @@ classdef Predictor < handle
       global lwprs;
       train_input = [delta_y; st_1];
       train_result = delta_s;
-      [yp,w] = lwpr('Update',obj.ID*2,train_input,train_result);
+      for i = 1:3
+          [yp,w] = lwpr('Update',obj.ID*2,train_input,train_result);
+      end
       %% Training Decode model
       obj.decode_weights = at_1(1)/delta_s(1); 
       
@@ -230,7 +234,7 @@ classdef Predictor < handle
         [next_y, pred_delta_y] = obj.forward_predict(yt_1 , st_1, at_1);
         delta_y_errors = pred_delta_y - delta_y;
 
-        fm_error = sum((next_y - yt).^ 2)/2;
+        fm_error = sum((next_y - yt).^ 2)/obj.esize;
 
         obj.fm_pred_errors(obj.fm_pred_i) = fm_error;
         obj.fm_pred_i = obj.fm_pred_i +1;
@@ -241,12 +245,14 @@ classdef Predictor < handle
       global lwprs;
       train_input = st_1;
       train_result= yt_1;
-      [yp,w] = lwpr('Update',obj.ID*2-1,train_input,train_result);
-
+      for i = 1:2
+         [yp,w] = lwpr('Update',obj.ID*2-1,train_input,train_result);
+      end
       train_input = st;
       train_result = yt;
-      [yp,w] = lwpr('Update',obj.ID*2-1,train_input,train_result);
-
+      for i = 1:2
+         [yp,w] = lwpr('Update',obj.ID*2-1,train_input,train_result);
+      end
     end
 
   end

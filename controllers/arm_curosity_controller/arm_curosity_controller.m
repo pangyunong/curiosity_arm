@@ -19,8 +19,8 @@ MAX_SENSOR_NUM = 7;
 JOINT_RANGE = [-3.14, 3.14; -2.3562, 2.3562; -2, 2; -2,2; -2.5, 2.5; 0, 1.2771; -1.2771, 0];
 SERVO_SPEED_RANGE = [2.20894; 1.1908; 1.38927; 2.20894; 2.20894; 2.20894; 2.20894];
 
-RANDOM_PERIOD = 150;
-START_TO_PREDICT = 50;
+RANDOM_PERIOD = 9000;
+START_TO_PREDICT = 5;
 
 %% ****************************************
 %% Variable Definition
@@ -33,7 +33,7 @@ effect_buffer  = Buffer;
 target_action_buffer = Buffer;
 
 actor = Actor;
-predictor = Predictor(7, 2, 7, 1, lwprs); % predictor here
+predictor = Predictor(7, 3, 7, 1, lwprs); % predictor here
 
 % *********************************************
 % get the reference and enable devices, e.g.:
@@ -48,6 +48,8 @@ leftgripper =  wb_robot_get_device('left_gripper');
 
 camera =  wb_robot_get_device('camera');
 
+gps = wb_robot_get_device('gps');
+
 servos = [base, upperarm, forearm, wrist, rotationalwrist, rightgripper, leftgripper];
 
 % Enable the devices
@@ -55,6 +57,7 @@ for i=1:length(servos)
   wb_servo_enable_position(servos(1,i), TIME_STEP);
 end
 wb_camera_enable(camera,TIME_STEP);
+wb_gps_enable(gps, TIME_STEP);
 
 
 
@@ -105,12 +108,15 @@ while wb_robot_step(TIME_STEP) ~= -1
   labels = bwlabel(bwimg, 8);
   
   blobMeasurements = regionprops(labels, 'all');
-  top_x = blobMeasurements(1).Centroid(1);
-  top_y = blobMeasurements(1).Centroid(2);
+  top_x =   0;           %blobMeasurements(1).Centroid(1);
+  top_y =   1;            %blobMeasurements(1).Centroid(2);
   %% location of hand 
   hand_loc = [top_x; top_y];
   norm_hand_loc = hand_loc/256;
-  
+
+  xyz = wb_gps_get_values(gps);
+  xyz = xyz';
+  norm_hand_loc = xyz;
 
   %% ****************************************
   %% Data normalization & regularation 
@@ -144,7 +150,7 @@ while wb_robot_step(TIME_STEP) ~= -1
 
   %% Preparation -> random move 
   if (status == 0)
-      action_command = (rand(MAX_MOTOR_NUM, 1)-0.5)*1;
+      action_command = (rand(MAX_MOTOR_NUM, 1)-0.51)*0.32;
       robot_step = robot_step + 1;
       indicate_str = ['Random exploration step no: ',num2str(robot_step)];
       disp(indicate_str);

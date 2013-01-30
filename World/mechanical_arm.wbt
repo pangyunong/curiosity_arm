@@ -17,7 +17,7 @@ WorldInfo {
 }
 Viewpoint {
   orientation 0.880133 -0.417559 -0.225854 5.26963
-  position 0.934135 3.39994 0.717562
+  position 0.165249 2.27121 0.163682
 }
 Background {
   skyColor [
@@ -920,6 +920,9 @@ Robot {
                       translation 1.24893e-05 0.118493 -7.05164e-09
                       rotation 0 1 7e-06 0
                       children [
+                        GPS {
+                          translation 0 0.035 0
+                        }
                         LED {
                           translation 0.027 0.035 0
                           children [
@@ -1591,7 +1594,6 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position 0
                           minPosition -1.22171
                         }
                         DistanceSensor {
@@ -1774,7 +1776,6 @@ Robot {
                           maxVelocity 2.20894
                           maxForce 20
                           controlP 20
-                          position 0
                           minPosition -0.1
                           maxPosition 1.22171
                         }
@@ -1866,7 +1867,6 @@ Robot {
                       maxVelocity 2.20894
                       maxForce 20
                       controlP 20
-                      position 0
                       minPosition -5.79789
                     }
                   ]
@@ -1952,7 +1952,6 @@ Robot {
                   maxVelocity 2.20894
                   maxForce 20
                   controlP 20
-                  position 0
                   minPosition -4.0491
                 }
               ]
@@ -1986,7 +1985,6 @@ Robot {
               maxVelocity 1.38927
               maxForce 20
               controlP 20
-              position 0
               maxPosition 4.2149
             }
           ]
@@ -2016,7 +2014,6 @@ Robot {
           maxVelocity 1.1908
           maxForce 20
           controlP 20
-          position 0
         }
       ]
       name "base"
@@ -2074,7 +2071,6 @@ Robot {
       maxVelocity 2.20894
       maxForce 20
       controlP 20
-      position 0
       minPosition -6.0335
       maxPosition 6.0335
     }
